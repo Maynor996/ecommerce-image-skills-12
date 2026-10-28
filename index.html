@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>开源12个电商出图Agent Skills：GPT Image 2.5一键出图</title>
+<meta name="description" content="开源12个电商出图Agent Skills：GPT Image 2.5一键出图 一张手机随手拍的商品照，丢给 Claude Code / Codex / Cursor，直接出亚马逊白底主图、场景图、卖点图、小红书封面。本文介绍我刚开源的 ecommerce-image-skills ，包含安装、使用、出图方式和平台规则">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f5f0;--card:#fff;--text:#1a1a1a;--muted:#5c5c5c;--accent:#1a73e8;--border:#e6e2d8;--code-bg:#f0eee8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+article{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem 1.75rem 2.5rem;box-shadow:0 8px 30px rgba(0,0,0,.04)}
+h1{font-family:"Noto Serif SC",serif;font-size:clamp(1.55rem,4vw,2rem);line-height:1.4;margin:0 0 1.25rem;font-weight:700}
+h2{font-family:"Noto Serif SC",serif;font-size:1.35rem;margin:2.25rem 0 .9rem;padding-top:.5rem;border-top:1px solid var(--border);font-weight:700}
+h2:first-of-type{border-top:none;padding-top:0}h3{font-size:1.1rem;margin:1.5rem 0 .6rem}
+p{margin:.9rem 0}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+ul,ol{padding-left:1.35rem;margin:.8rem 0}li{margin:.35rem 0}strong{font-weight:700}
+img{display:block;max-width:100%;height:auto;margin:1.1rem auto .35rem;border-radius:10px;border:1px solid var(--border);background:#fafafa}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;overflow-x:auto;font-size:.88rem;line-height:1.55}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre code{background:none;padding:0}
+blockquote{margin:1rem 0;padding:.2rem 0 .2rem 1rem;border-left:3px solid var(--accent);color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+th,td{border:1px solid var(--border);padding:.55rem .7rem;text-align:left;vertical-align:top}th{background:#f3f1eb}
+.meta{color:var(--muted);font-size:.92rem;margin-bottom:1.5rem}
+.pages-banner{margin:0 0 1.25rem;padding:.75rem 1rem;background:#eef5ff;border:1px solid #d0e2ff;border-radius:10px;font-size:.95rem}
+footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--muted);font-size:.88rem}
+</style></head><body><div class="wrap"><article>
+<div class="pages-banner">在线阅读（GitHub Pages）：<a href="https://maynor996.github.io/ecommerce-image-skills-12/">https://maynor996.github.io/ecommerce-image-skills-12/</a></div>
+<h1>开源12个电商出图Agent Skills：GPT Image 2.5一键出图</h1>
+<div class="meta">原文：<a href="https://blog.csdn.net/xianyu120/article/details/167080746">https://blog.csdn.net/xianyu120/article/details/167080746</a></div>
+<h2>开源12个电商出图Agent Skills：GPT Image 2.5一键出图</h2>
+<blockquote>
+<p>一张手机随手拍的商品照，丢给 Claude Code / Codex / Cursor，直接出亚马逊白底主图、场景图、卖点图、小红书封面。本文介绍我刚开源的 <strong>ecommerce-image-skills</strong> ，包含安装、使用、出图方式和平台规则，MIT 协议，免费可商用。</p>
+</blockquote>
+<p>项目地址：<strong>https://github.com/xianyu110/ecommerce-image-skills</strong></p>
+<hr />
+<h3>一、做电商的出图痛点</h3>
+<p>做过电商的朋友应该都有体会：一个新品上架，光图片就要准备一大堆——</p>
+<ul>
+<li>亚马逊主图要<strong>纯白背景、主体占比 ≥85%</strong> ，差一点就可能被判不合规；</li>
+<li>详情页要场景图、卖点信息图、尺寸图、多角度图，还有 A+ 模块；</li>
+<li>换个平台又要重新做：淘宝 750 宽详情长图、小红书 3:4 封面、Shopee / TikTok Shop 的大促 Banner……</li>
+</ul>
+<p>请摄影 + 美工成本高、周期长；直接用 AI 生图又经常遇到一个尴尬问题：<strong>图很好看，但产品被改了</strong> ——Logo 拼错、颜色跑偏、瓶身形状变了。</p>
+<p>所以我把「拍商品图 + 美工做图」这件事，拆成了 12 个可以单独安装的 Agent Skill。</p>
+<h3>二、ecommerce-image-skills 是什么</h3>
+<p><strong>ecommerce-image-skills</strong> 是一套面向电商出图的 Agent Skills，基于 <strong>GPT Image 2.5</strong> （Flare / Sunburst 两个模型），覆盖 Amazon、淘宝天猫、Shopee、TikTok Shop、小红书等平台，可以在 Claude Code、Codex、Cursor 以及任何读取 <code>SKILL.md</code> 的 agent 里使用。</p>
+<p>它和网上"一堆 prompt"的区别在于：</p>
+<ol>
+<li><strong>产品身份锁定</strong> ：每个 skill 第一步先锁定产品的形状、颜色、Logo、文字，并原样带进每一条提示词，减少"越画越不像"。</li>
+<li><strong>平台规格内置</strong> ：Amazon 主图（#FFFFFF、≥85%）、A+ 模块尺寸、淘宝 750 宽详情、小红书 3:4、各平台 Banner 尺寸都写进了 skill。</li>
+<li><strong>模型路由</strong> ：默认用 <strong>Flare</strong> （快，适合出场景、多版本）；需要保留 Logo/文字或做局部编辑时切 <strong>Sunburst</strong> 。</li>
+<li><strong>脚本做确定性的事</strong> ：白底/占比检查与修复、A+ 裁切、拼图、详情页拼接切片、批量换背景（支持断点续跑 + 预算上限）。</li>
+<li><strong>三种出图方式</strong> ：agent 自带生图工具 / 配 API Key / 什么都没有时输出提示词 + 在线运行链接。</li>
+</ol>
+<h3>三、12 个 Skill 一览</h3>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>功能说明</th>
+<th>默认模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>amazon-white-background</code></td>
+<td>Amazon 白底主图：纯白 #FFFFFF、主体 ≥85%、无文字，附 Python 检查/修复脚本</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>lifestyle-scene</code></td>
+<td>生活场景图：厨房/户外/办公/健身等场景库，产品保真</td>
+<td>Flare</td>
+</tr>
+<tr>
+<td><code>model-try-on</code></td>
+<td>模特上身图：平铺/挂拍 → 模特试穿，保留面料、颜色、Logo</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>selling-point-infographic</code></td>
+<td>卖点信息图：一图一卖点、图标+标注线，文案逐字确认</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>amazon-a-plus</code></td>
+<td>A+ 页面模块：970×600 / 970×300 / 300×300 / 1464×600 等，统一风格锁 + 裁切脚本</td>
+<td>Flare</td>
+</tr>
+<tr>
+<td><code>size-chart</code></td>
+<td>尺寸规格图：cm/inch 双单位、服装尺码表，数字只用用户提供的</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>multi-angle-set</code></td>
+<td>多角度套图：正/侧/背/顶/45°/细节，统一光位背景 + 拼图脚本</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>sale-banner</code></td>
+<td>大促 Banner：淘宝天猫 / Shopee / Lazada / TikTok Shop / Amazon 尺寸与大促配色</td>
+<td>Flare</td>
+</tr>
+<tr>
+<td><code>batch-background-swap</code></td>
+<td>批量换背景 / SKU 换色：断点续跑、重试、预算上限、CSV 日志</td>
+<td>Sunburst</td>
+</tr>
+<tr>
+<td><code>xiaohongshu-cover</code></td>
+<td>小红书封面 3:4：6 种爆款版式、大字标题、种草风</td>
+<td>Flare</td>
+</tr>
+<tr>
+<td><code>taobao-detail-long-image</code></td>
+<td>淘宝/天猫/拼多多 750 宽详情长图：分屏规划 + 拼接切片脚本</td>
+<td>Flare</td>
+</tr>
+<tr>
+<td><code>ecommerce-listing-suite</code></td>
+<td>总入口：按平台规划整套图，调度上面 11 个 skill 并质检</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<p>每个 skill 文件夹都自带所需脚本，互不依赖，只装一个也能用。</p>
+<h3>四、效果展示：同一张随手拍 → 多种电商图</h3>
+<p>下面的图都是 GPT Image 2.5 真实生成、未经 PS（白底图只跑了一次 <code>check_main_image.py --fix</code>，把近白像素统一为 #FFFFFF）。说明一下：输入的水杯「AURA」本身是 AI 生成的虚构产品，仅作演示。</p>
+<p><strong>输入：手机随手拍的水杯</strong></p>
+<p><img alt="输入：随手拍水杯" src="imgs/01.webp" /></p>
+<p><strong>① 亚马逊白底主图</strong> （<code>amazon-white-background</code>，Sunburst；修复后 100% #FFFFFF，主体占比 87%）</p>
+<p><img alt="亚马逊白底主图" src="imgs/02.webp" /></p>
+<p><strong>② 生活场景图</strong> （<code>lifestyle-scene</code>，Flare，户外徒步场景）</p>
+<p><img alt="生活场景图" src="imgs/03.webp" /></p>
+<p><strong>③ 卖点信息图</strong> （<code>selling-point-infographic</code>，Sunburst，英文文案逐字渲染）</p>
+<p><img alt="卖点信息图" src="imgs/04.webp" /></p>
+<p><strong>④ 小红书封面</strong> （<code>xiaohongshu-cover</code>，Flare，中文大字标题 3:4）</p>
+<p><img alt="小红书封面" src="imgs/05.webp" /></p>
+<p><strong>⑤ 大促 Banner</strong> （<code>sale-banner</code>，Flare，11.11 Shopee / TikTok Shop 风格）</p>
+<p><img alt="大促Banner" src="imgs/06.webp" /></p>
+<p><strong>服装也能做：平铺卫衣 → 模特上身</strong> （<code>model-try-on</code>，颜色、面料、胸口 Logo 保留）</p>
+<p><img alt="输入：平铺卫衣" src="imgs/07.webp" /></p>
+<p><img alt="模特上身图" src="imgs/08.webp" /></p>
+<p>完整提示词见仓库 <code>docs/showcase-prompts.md</code>。</p>
+<h3>五、安装：Claude Code / Codex / Cursor</h3>
+<p>先克隆仓库：</p>
+<pre><code>git clone https://github.com/xianyu110/ecommerce-image-skills.git
+cd ecommerce-image-skills
+</code></pre>
+<p>然后按你用的工具复制到对应目录：</p>
+<pre><code># Claude Code（全局；或复制到项目内 .claude/skills/）
+mkdir -p ~/.claude/skills &amp;&amp; cp -r skills/* ~/.claude/skills/
+
+# Codex
+mkdir -p ~/.codex/skills &amp;&amp; cp -r skills/* ~/.codex/skills/
+
+# Cursor（项目内）
+mkdir -p .cursor/skills &amp;&amp; cp -r skills/* .cursor/skills/
+</code></pre>
+<p>只想要某一个？复制对应文件夹即可：</p>
+<pre><code>cp -r skills/amazon-white-background ~/.claude/skills/
+</code></pre>
+<p>也可以用 skills CLI 一键安装：</p>
+<pre><code>npx skills add xianyu110/ecommerce-image-skills
+</code></pre>
+<p>或者在 Claude Code 里执行：</p>
+<pre><code>/plugin marketplace add xianyu110/ecommerce-image-skills
+</code></pre>
+<h3>六、使用：直接用自然语言说</h3>
+<p>装好之后不用记命令，直接对 agent 说：</p>
+<pre><code>用 amazon-white-background 把 ./photos/bottle.jpg 做成亚马逊白底主图，并跑检查脚本
+给这个水杯出一整套 Amazon 7 张图（ecommerce-listing-suite），先给我计划
+用 xiaohongshu-cover 做 3 个小红书封面，标题「一整天都冰的水杯」
+把 ./photos 里 40 张图批量换成纯白背景，最多花 40 次调用
+</code></pre>
+<h3>七、3 种出图方式</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>条件</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 内置工具</td>
+<td>agent 自带生图（如 Codex imagegen）</td>
+<td>自动使用</td>
+</tr>
+<tr>
+<td>② API Key</td>
+<td>设置 <code>GPTIMAGE_API_KEY</code>，可选 <code>GPTIMAGE_BASE_URL</code></td>
+<td>用 <code>scripts/generate.py</code> 出图</td>
+</tr>
+<tr>
+<td>③ 无 Key</td>
+<td>—</td>
+<td>输出最终提示词 + 一个 gptimage2.asia 在线运行链接，上传商品图即可</td>
+</tr>
+</tbody>
+</table>
+<p>方式②示例（任何 OpenAI 兼容接口都行，默认 <code>https://api.openai.com</code>）：</p>
+<pre><code>export GPTIMAGE_API_KEY=sk-...
+export GPTIMAGE_BASE_URL=https://tryallapi.com/v1
+python skills/amazon-white-background/scripts/generate.py --model sunburst \
+  --image bottle.jpg --size 1024x1024 --prompt-file prompt.txt --out out/main.png
+python skills/amazon-white-background/scripts/check_main_image.py out/main.png --fix out/main-fixed.png
+</code></pre>
+<p><strong>模型怎么选？</strong> 新场景、背景、版式、快速出多版本草稿用 <strong>Flare</strong> （<code>gpt-image-2.5-flare</code>）；必须保留 Logo / 标签 / 小字、局部编辑（换背景、换色、去杂物）、最终主图和文字密集的信息图 / 尺寸表用 <strong>Sunburst</strong> （<code>gpt-image-2.5-sunburst</code>）。</p>
+<h3>八、平台规则要点（以亚马逊主图为例）</h3>
+<p><code>amazon-white-background</code> 内置的规则：</p>
+<table>
+<thead>
+<tr>
+<th>规则</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>背景</td>
+<td>纯白 RGB 255,255,255（#FFFFFF）</td>
+</tr>
+<tr>
+<td>主体占比</td>
+<td>产品占画面 <strong>≥85%</strong></td>
+</tr>
+<tr>
+<td>尺寸</td>
+<td>最长边 ≥1000px 才能缩放，推荐 1600–2000px，最大 10000px</td>
+</tr>
+<tr>
+<td>格式</td>
+<td>优先 JPEG（也接受 TIFF/PNG/GIF），sRGB</td>
+</tr>
+<tr>
+<td>内容</td>
+<td>只能有售卖的产品；不加文字、徽章、边框、水印、道具</td>
+</tr>
+</tbody>
+</table>
+<p>AI 生成的"白"往往不是严格的 #FFFFFF，所以配套的 <code>check_main_image.py</code> 会检查白底和主体占比，加 <code>--fix</code> 可以自动修复。其他平台也有对应规格：A+ 模块尺寸、淘宝 750 宽详情、小红书 3:4 等。</p>
+<blockquote>
+<p>平台规则会变，上传前请再核对一下当前卖家后台的官方说明。</p>
+</blockquote>
+<h3>九、FAQ</h3>
+<p><strong>Q1：没有 API Key 能用吗？</strong><br />
+可以。agent 自带生图工具时会自动使用；什么都没有时，skill 会输出最终提示词和一个在线运行链接，打开上传商品图就能出图。</p>
+<p><strong>Q2：会不会把我的产品画走样？</strong><br />
+每个 skill 第一步都会做"产品身份锁定"，并且只使用照片里看得到或你确认过的信息，不会编造规格、认证。保 Logo/文字的场景默认用 Sunburst。</p>
+<p><strong>Q3：可以批量处理吗？</strong><br />
+可以，用 <code>batch-background-swap</code>，支持断点续跑、重试、预算上限和 CSV 日志，比如"最多花 40 次调用"。</p>
+<p><strong>Q4：能商用吗？</strong><br />
+项目是 MIT 协议，可以自由使用和修改。</p>
+<p><strong>Q5：除了 Claude Code / Codex / Cursor 还能用在哪？</strong><br />
+任何能读取 <code>SKILL.md</code> 的 agent 都可以。</p>
+<h3>十、写在最后</h3>
+<p>如果你在做亚马逊、淘宝、Shopee、TikTok Shop 或小红书，希望这套 skills 能帮你省下一些拍图和做图的时间。觉得有用的话，<strong>欢迎到 GitHub 点个 Star ⭐</strong> ，也欢迎提 Issue / PR 补充新平台规格和模板。</p>
+<ul>
+<li>GitHub：https://github.com/xianyu110/ecommerce-image-skills</li>
+</ul>
+<footer>镜像自 CSDN @xianyu120 · 内容以原文为准</footer>
+</article></div></body></html>
